@@ -131,6 +131,40 @@ Custom property | Description | Default
         min="0"
         no-label-float
         disabled="[[disabled]]">
+        <span suffix slot="suffix">:</span>
+      </paper-input>
+
+      <!-- Sec Input -->
+      <paper-input
+        id="sec"
+        type="number"
+        value="{{sec}}"
+        on-change="_formatSec"
+        required
+        auto-validate="[[autoValidate]]"
+        prevent-invalid-input
+        maxlength="2"
+        max="59"
+        min="0"
+        no-label-float
+        disabled="[[disabled]]">
+        <span suffix slot="suffix">.</span>
+      </paper-input>
+
+      <!-- Mil Input -->
+      <paper-input
+        id="mil"
+        type="number"
+        value="{{mil}}"
+        on-change="_formatMil"
+        required
+        auto-validate="[[autoValidate]]"
+        prevent-invalid-input
+        maxlength="3"
+        max="999"
+        min="0"
+        no-label-float
+        disabled="[[disabled]]">
       </paper-input>
 
       <!-- Dropdown Menu -->
@@ -181,7 +215,7 @@ Custom property | Description | Default
          */
         format: {
           type: Number,
-          value: 12
+          value: 24
         },
         /**
          * disables the inputs
@@ -205,6 +239,20 @@ Custom property | Description | Default
           notify: true
         },
         /**
+         * second
+         */
+        sec: {
+          type: String,
+          notify: true
+        },
+        /**
+         * millisecond
+         */
+        mil: {
+          type: String,
+          notify: true
+        },
+        /**
          * AM or PM
          */
         amPm: {
@@ -219,7 +267,7 @@ Custom property | Description | Default
           type: String,
           notify: true,
           readOnly: true,
-          computed: '_computeTime(min, hour, amPm)'
+          computed: '_computeTime(min, hour, sec, amPm)'
         },
       },
       /**
@@ -228,8 +276,13 @@ Custom property | Description | Default
        */
       validate: function(){
         var valid = true;
-        // Validate hour & min fields
-        if(!this.$.hour.validate() | !this.$.min.validate()){
+        // Validate hour, min & sec fields
+        if (
+          !this.$.hour.validate() |
+          !this.$.min.validate() |
+          !this.$.sec.validate() |
+          !this.$.mil.validate()
+        ){
           valid = false;
         }
         // Validate AM PM if 12 hour time
@@ -242,13 +295,13 @@ Custom property | Description | Default
       /**
        * Create time string
        */
-      _computeTime: function(min, hour, amPm){
-        if (hour && min) {
+      _computeTime: function(min, hour, sec, mil, amPm){
+        if (hour && min && sec && mil) {
           // No ampm on 24 hr time
           if (this.format == 24) {
             amPm = "";
           }
-          return hour + ":" + min + " " + amPm;
+          return hour + ":" + min + ":" + sec + "." + mil + " " + amPm;
         }
       },
       /**
@@ -258,6 +311,20 @@ Custom property | Description | Default
         if(this.min.toString().length === 1){
           this.min = (this.min < 10) ? ("0" + this.min) : this.min;
         }
+      },
+      /**
+       * Format sec
+       */
+      _formatSec: function(){
+        if(this.sec.toString().length === 1){
+          this.sec = (this.sec < 10) ? ("0" + this.sec) : this.sec;
+        }
+      },
+      /**
+       * Format mil
+       */
+      _formatMil: function(){
+        this.mil = ('000'+this.mil).substring(this.mil.length)
       },
       /**
        * Hour needs a leading zero in 24hr format
@@ -273,7 +340,7 @@ Custom property | Description | Default
       _computeHourMax: function(format){
         if (format == 12) {
           return format
-        }else {
+        } else {
           return 23
         }
       },

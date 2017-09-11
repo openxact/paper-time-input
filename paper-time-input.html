@@ -1,8 +1,6 @@
 <link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="../paper-input/paper-input.html">
-<link rel="import" href="../paper-listbox/paper-listbox.html">
 <link rel="import" href="../paper-item/paper-item.html">
-<link rel="import" href="../paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../paper-styles/typography.html">
 <link rel="import" href="../iron-flex-layout/iron-flex-layout.html">
 
@@ -46,7 +44,7 @@ Custom property | Description | Default
           * http://stackoverflow.com/questions/3790935/can-i-hide-the-html5-number-input-s-spin-box
           */
           -moz-appearance: textfield;
-          @apply --paper-time-input-cotnainer;
+          @apply --paper-time-input-container;
         };
         --paper-input-container-input-webkit-spinner: {
           -webkit-appearance: none;
@@ -55,38 +53,10 @@ Custom property | Description | Default
         };
       }
 
-      paper-dropdown-menu{
-        width: 55px;
-        padding: 0;
-        /* Force ripple to use the whole container */
-        --paper-dropdown-menu-ripple: {
-          color: var(--paper-time-input-dropdown-ripple-color, --primary-color);
-        };
-        --paper-input-container-input: {
-          @apply --paper-font-button;
-          text-align: center;
-          padding-left: 5px;
-          @apply --paper-time-dropdown-input-cotnainer;
-        };
-        --paper-input-container-underline: {
-          border-color: transparent;
-        }
-        --paper-input-container-underline-focus: {
-          border-color: transparent;
-        };
-      }
-      paper-item{
-        cursor: pointer;
-        text-align: center;
-        font-size: 14px;
-      }
-      paper-listbox{
-        padding: 0;
-      }
-
       label{
         @apply --paper-font-caption;
       }
+
       .time-input-wrap{
         @apply --layout-horizontal;
         @apply --layout-no-wrap;
@@ -105,12 +75,12 @@ Custom property | Description | Default
         id="hour"
         type="number"
         value="{{hour}}"
-        on-change="_shouldFormatHour"
+        on-change="_formatHour"
         required
         auto-validate="[[autoValidate]]"
         prevent-invalid-input
         maxlength="2"
-        max="[[_computeHourMax(format)]]"
+        max="23"
         min="0"
         no-label-float
         disabled="[[disabled]]">
@@ -167,20 +137,6 @@ Custom property | Description | Default
         disabled="[[disabled]]">
       </paper-input>
 
-      <!-- Dropdown Menu -->
-      <paper-dropdown-menu
-        id="dropdown"
-        required
-        hidden$="[[_equal(format, '24')]]"
-        no-label-float
-        disabled="[[disabled]]">
-
-        <paper-listbox attr-for-selected="name" selected="{{amPm}}" slot="dropdown-content">
-          <paper-item name="AM">AM</paper-item>
-          <paper-item name="PM">PM</paper-item>
-        </paper-listbox>
-      </paper-dropdown-menu>
-
     </div>
 
   </template>
@@ -209,13 +165,6 @@ Custom property | Description | Default
         hideLabel: {
           type: Boolean,
           value: false
-        },
-        /**
-         * 12 or 24 hr format
-         */
-        format: {
-          type: Number,
-          value: 24
         },
         /**
          * disables the inputs
@@ -252,13 +201,9 @@ Custom property | Description | Default
           type: String,
           notify: true
         },
-        /**
-         * AM or PM
-         */
-        amPm: {
+        initValue: {
           type: String,
-          notify: true,
-          value: 'AM'
+          observer: '_updateTime'
         },
         /**
          * Formatted time string
@@ -267,7 +212,7 @@ Custom property | Description | Default
           type: String,
           notify: true,
           readOnly: true,
-          computed: '_computeTime(min, hour, sec, amPm)'
+          computed: '_computeTime(min, hour, sec, mil)'
         },
       },
       /**
@@ -275,7 +220,6 @@ Custom property | Description | Default
        * @return {boolean}
        */
       validate: function(){
-        var valid = true;
         // Validate hour, min & sec fields
         if (
           !this.$.hour.validate() |
@@ -283,25 +227,30 @@ Custom property | Description | Default
           !this.$.sec.validate() |
           !this.$.mil.validate()
         ){
-          valid = false;
+          return false
         }
-        // Validate AM PM if 12 hour time
-        if (this.format == 12 && !this.$.dropdown.validate()) {
-          valid = false;
-        }
-        return valid;
+        return true
       },
-
+      /**
+       * Update from time string
+       */
+      _updateTime: function(timeString) {
+        if (timeString == this.value) return
+        // 00:00:00.000
+        var chunks = timeString.Split(":")
+        if (chunks.length < 3) return
+        this.hour = parseInt(chunks[0])
+        this.min  = parseInt(chunks[1])
+        let frac = chunks[2].Split(".")
+        this.sec = frac[0]
+        this.mil = parseInt(frac[1])
+      },
       /**
        * Create time string
        */
-      _computeTime: function(min, hour, sec, mil, amPm){
+      _computeTime: function(min, hour, sec, mil){
         if (hour && min && sec && mil) {
-          // No ampm on 24 hr time
-          if (this.format == 24) {
-            amPm = "";
-          }
-          return hour + ":" + min + ":" + sec + "." + mil + " " + amPm;
+          return hour + ":" + min + ":" + sec + "." + mil
         }
       },
       /**
@@ -329,26 +278,11 @@ Custom property | Description | Default
       /**
        * Hour needs a leading zero in 24hr format
        */
-      _shouldFormatHour: function(){
-        if(this.format == 24 && this.hour.toString().length === 1){
+      _formatHour: function(){
+        if(this.hour.toString().length === 1){
           this.hour = (this.hour < 10) ? ("0" + this.hour) : this.hour;
         }
       },
-      /**
-       * 24 hour format has a max hr of 23
-       */
-      _computeHourMax: function(format){
-        if (format == 12) {
-          return format
-        } else {
-          return 23
-        }
-      },
-      _equal: function(n1, n2){
-        if (n1 == n2) {
-          return true
-        }
-      }
     });
   </script>
 </dom-module>

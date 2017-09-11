@@ -1,6 +1,7 @@
 MIT License
 
-Copyright (c) 2017 Ryan Burns
+Copyright (c) 2017 Ryan Burns (original project https://github.com/ryanburns23/paper-time-input)
+Copyright (c) 2017 OpenXact authors (fork https://github.com/openxact/paper-time-input)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

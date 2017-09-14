@@ -212,7 +212,7 @@ Custom property | Description | Default
           type: String,
           notify: true,
           readOnly: true,
-          computed: '_computeTime(min, hour, sec, mil)'
+          computed: '_computeTime(hour, min, sec, mil)'
         },
       },
       /**
@@ -235,7 +235,17 @@ Custom property | Description | Default
        * Update from time string
        */
       _updateTime: function(timeString) {
-        if (!timeString || timeString == this.value) return
+        if (!timeString || timeString == this.value) {
+          this.hour = ""
+          this.min = ""
+          this.sec = ""
+          this.mil = ""
+          this.$.hour.invalid = false
+          this.$.min.invalid = false
+          this.$.sec.invalid = false
+          this.$.mil.invalid = false
+          return
+        }
         // 00:00:00.000
         var chunks = timeString.split(":")
         if (chunks.length < 3) return
@@ -248,9 +258,11 @@ Custom property | Description | Default
       /**
        * Create time string
        */
-      _computeTime: function(min, hour, sec, mil){
+      _computeTime: function(hour, min, sec, mil){
         if (hour && min && sec && mil) {
           return hour + ":" + min + ":" + sec + "." + mil
+        } else {
+          return ""
         }
       },
       /**
@@ -281,7 +293,7 @@ Custom property | Description | Default
        * Format mil
        */
       _formatMil: function(){
-        if (this.mil.toString().length < 3) {
+        if (this.mil.toString().length > 0) {
           this.mil = ('000'+this.mil).substring(this.mil.length)
         }
       },

@@ -235,7 +235,7 @@ Custom property | Description | Default
        * Update from time string
        */
       _updateTime: function(timeString) {
-        if (!timeString || timeString == this.value) {
+        if (!timeString || timeString == "") {
           this.hour = ""
           this.min = ""
           this.sec = ""
@@ -261,8 +261,6 @@ Custom property | Description | Default
       _computeTime: function(hour, min, sec, mil){
         if (hour && min && sec && mil) {
           return hour + ":" + min + ":" + sec + "." + mil
-        } else {
-          return ""
         }
       },
       /**
